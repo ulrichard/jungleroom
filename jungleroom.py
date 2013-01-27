@@ -7,6 +7,7 @@
 # http://stackoverflow.com/questions/307305/play-a-sound-with-python
 # retired : 
 # http://www.raspberrypi-spy.co.uk/2012/08/reading-analogue-sensors-with-one-gpio-pin/#more-520
+# http://www.doctormonk.com/2012/07/raspberry-pi-gpio-driving-servo.html
 
 #                             +---+
 #              3.3v power     |* *| 5v power
