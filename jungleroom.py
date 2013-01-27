@@ -30,6 +30,7 @@ from AttinyStepper import AttinyStepper
 
 GPIO.setmode(GPIO.BCM)
 # Set up the GPIO channels - one input and one output
+GPIO.setmode(GPIO.BCM)
 GPIO.setup( 4, GPIO.OUT)  # Servo to open/close the door
 GPIO.setup(17, GPIO.IN)   # PIR
 GPIO.setup(18, GPIO.IN)   # BTN1 (toggle) open and close the door with a servo
@@ -41,7 +42,8 @@ i2c = smbus.SMBus(1)
 tinyStep = AttinyStepper(0x10)
 
 doorOpen = GPIO.input(18) == GPIO.HIGH
-
+servoPin = 4
+servoRefreshPeriod = 0.02
 
 # make the blinkm dark
 #i2c.write_byte(0x09, 0x6F)
@@ -79,8 +81,18 @@ while True:
 	if doorOpen != btn1val:
 		if btn1val:
 			print 'open the door'
+			for i in range(1, 10):
+				GPIO.output(servoPin, False)
+				time.sleep(0.001)
+				GPIO.output(servoPin, True)
+				time.sleep(servoRefreshPeriod)
 		else:
 			print 'close the door'
+			for i in range(1, 10):
+				GPIO.output(servoPin, False)
+				time.sleep(0.002)
+				GPIO.output(servoPin, True)
+				time.sleep(servoRefreshPeriod)
 		doorOpen = btn1val			
 		# todo: talk to the servo
 
