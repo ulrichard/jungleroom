@@ -38,11 +38,14 @@ GPIO.setup(24, GPIO.IN)   # BTN3 play the sound of an animal
 
 i2c = smbus.SMBus(1)
 
-tinyStep = AttinyStepper(0x10)
+tinyStep = AttinyStepper(0x10, 20)
 
 doorOpen = GPIO.input(18) == GPIO.HIGH
 servoPin = 4
 servoRefreshPeriod = 0.02
+servoOpenVal  = 0.002
+servoCloseVal = 0.001
+servoSteps = 80
 
 # make the blinkm dark
 #i2c.write_byte(0x09, 0x6F)
@@ -69,27 +72,31 @@ while True:
 	if btn2val:
 		try:
 			# let the stepper motor advance some steps
-			tinyStep.stepsForward(50)
+			tinyStep.stepsForward(500)
 			time.sleep(3)
-			tinyStep.stepsBackward(50)
+			tinyStep.stepsBackward(500)
 			time.sleep(3)
 			
 		except Exception as ex:
 			print 'i2c error with the stepper: %s' % str(ex)
 
 	if doorOpen != btn1val:
+		servoInterval = servoOpenVal - servoCloseVal		
 		if btn1val:
 			print 'open the door'
-			for i in range(1, 100):
+			for i in range(1, servoSteps):
+				nowVal = servoCloseVal + i * servoInterval / servoSteps
 				GPIO.output(servoPin, False)
-				time.sleep(0.002)
+				time.sleep(nowVal)
 				GPIO.output(servoPin, True)
 				time.sleep(servoRefreshPeriod)
 		else:
 			print 'close the door'
-			for i in range(1, 100):
+			for i in range(1, servoSteps):
+				nowVal = servoOpenVal - i * servoInterval / servoSteps
+
 				GPIO.output(servoPin, False)
-				time.sleep(0.001)
+				time.sleep(nowVal)
 				GPIO.output(servoPin, True)
 				time.sleep(servoRefreshPeriod)
 		doorOpen = btn1val			
