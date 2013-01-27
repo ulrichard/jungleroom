@@ -39,7 +39,7 @@ i2c = smbus.SMBus(1)
 
 tinyStep = AttinyStepper(0x10)
 
-doorOpen = False
+doorOpen = GPIO.input(18) == GPIO.HIGH
 
 
 # make the blinkm dark
@@ -73,7 +73,7 @@ while True:
 			time.sleep(3)
 			
 		except Exception as ex:
-			print 'i2c error attiny : %s' % str(ex)
+			print 'i2c error with the stepper: %s' % str(ex)
 
 	if doorOpen != btn1val:
 		if btn1val:
@@ -87,7 +87,7 @@ while True:
 		# get the light value analog reading from the attiny
 		lightval = tinyStep.readAnalog8()
 	except Exception as ex:
-		print 'i2c error attiny : %s' % str(ex)
+		print 'i2c error with the light sensor : %s' % str(ex)
 
 #	try:
 		# read the barometric pressure sensor
