@@ -25,7 +25,7 @@
 #              Ground         |* *| GPIO  7 (CE1)
 #                             +---+
 
-import RPi.GPIO as GPIO, time, smbus, os, pyglet
+import RPi.GPIO as GPIO, time, smbus, os, pyglet, random
 from AttinyStepper import AttinyStepper
 
 GPIO.setmode(GPIO.BCM)
@@ -63,11 +63,10 @@ while True:
 	lightval = 0
 
 	if btn3val:
-#		music = pyglet.resource.media('sounds/ele.wav')
-#		music.play()
-#		pyglet.app.run()
-		print 'btn 3 pressed. playing elephant'
-		os.system('aplay sounds/ele.wav')
+		files = os.listdir('./sounds')
+		file = files[random.randint(0, len(files) - 1)]
+		print 'btn 3 pressed. playing %s' % file
+		os.system('aplay sounds/%s' % file)
 
 	if btn2val:
 		try:
