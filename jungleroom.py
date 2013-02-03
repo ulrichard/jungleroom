@@ -43,7 +43,7 @@ tinyStep = AttinyStepper(0x10, 20)
 doorOpen = GPIO.input(18) == GPIO.HIGH
 servoPin = 4
 servoRefreshPeriod = 0.02
-servoOpenVal  = 0.002
+servoOpenVal  = 0.0019
 servoCloseVal = 0.001
 servoSteps = 80
 
@@ -94,13 +94,19 @@ while True:
 			print 'close the door'
 			for i in range(1, servoSteps):
 				nowVal = servoOpenVal - i * servoInterval / servoSteps
-
 				GPIO.output(servoPin, False)
 				time.sleep(nowVal)
 				GPIO.output(servoPin, True)
 				time.sleep(servoRefreshPeriod)
 		doorOpen = btn1val			
-		# todo: talk to the servo
+	elif doorOpen:
+		# send some impulses to keep the door open
+		for i in range(10):
+			GPIO.output(servoPin, False)
+			time.sleep(servoOpenVal)
+			GPIO.output(servoPin, True)
+			time.sleep(servoRefreshPeriod)
+			
 
 	try:		 
 		# get the light value analog reading from the attiny
@@ -127,5 +133,5 @@ while True:
 
 	print "%i  %i  %i  %i  %i" % (btn1val, btn2val, btn3val, pirval, lightval)  
 
-	time.sleep(0.2)
+	time.sleep(0.05)
 
