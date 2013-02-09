@@ -47,6 +47,8 @@ servoOpenVal  = 0.0019
 servoCloseVal = 0.001
 servoSteps = 80
 
+cableCarBottom = True
+
 # make the blinkm dark
 #i2c.write_byte(0x09, 0x6F)
 #i2c.write_byte(0x09, 0x6E)
@@ -71,10 +73,13 @@ while True:
 	if btn2val:
 		try:
 			# let the stepper motor advance some steps
-			tinyStep.stepsForward(500)
-			time.sleep(3)
-			tinyStep.stepsBackward(500)
-			time.sleep(3)
+			if cableCarBottom:
+				tinyStep.stepsForward(255)
+				cableCarBottom = False
+			else:
+				tinyStep.stepsBackward(255)
+				cableCarBottom = True
+			time.sleep(5)
 			
 		except Exception as ex:
 			print 'i2c error with the stepper: %s' % str(ex)
