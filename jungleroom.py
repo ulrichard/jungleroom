@@ -25,7 +25,7 @@
 #              Ground         |* *| GPIO  7 (CE1)
 #                             +---+
 
-import RPi.GPIO as GPIO, time, smbus, os
+import RPi.GPIO as GPIO, time, smbus, os, random
 from AttinyStepper import AttinyStepper
 from ServoPi import ServoPi
 
@@ -44,6 +44,8 @@ doorServo = ServoPi(4, 0.002, 0.001, 0.02)
 
 doorOpen = GPIO.input(18) == GPIO.HIGH
 
+cableCarBottom = True
+
 # Main program loop
 while True:
 	pirval   = GPIO.input(17) == GPIO.HIGH
@@ -53,16 +55,21 @@ while True:
 	lightval = 0
 
 	if btn3val:
-		print 'btn 3 pressed. playing elephant'
-		os.system('aplay sounds/ele.wav')
+		files = os.listdir('./sounds')
+		file = files[random.randint(0, len(files) - 1)]
+		print 'btn 3 pressed. playing %s' % file
+		os.system('aplay sounds/%s' % file)
 
 	if btn2val:
 		try:
 			# let the stepper motor advance some steps
-			tinyStep.stepsForward(500)
-			time.sleep(3)
-			tinyStep.stepsBackward(500)
-			time.sleep(3)
+			if cableCarBottom:
+				tinyStep.stepsForward(255)
+				cableCarBottom = False
+			else:
+				tinyStep.stepsBackward(255)
+				cableCarBottom = True
+			time.sleep(5)
 			
 		except Exception as ex:
 			print 'i2c error with the stepper: %s' % str(ex)
@@ -79,32 +86,22 @@ while True:
 			for i in range(1, servoSteps):
 				doorServo.move(1 - (i / 80))
 		doorOpen = btn1val			
-		# todo: talk to the servo
-
+	elif doorOpen:
+		# send some impulses to keep the door open
+		for i in range(10):
+			GPIO.output(servoPin, False)
+			time.sleep(servoOpenVal)
+			GPIO.output(servoPin, True)
+			time.sleep(servoRefreshPeriod)
+			
 	try:		 
 		# get the light value analog reading from the attiny
 		lightval = tinyStep.readAnalog8()
 	except Exception as ex:
 		print 'i2c error with the light sensor : %s' % str(ex)
 
-#	try:
-		# read the barometric pressure sensor
-#		i2cAddrBaro = 0x77  # 0x77 or 0x76
-#		i2c.write_byte(i2cAddrBaro, 0x1E)  # send reset command
-#		time.sleep(0.03)
-		# read coefficients
-#		coefficients = []
-#		for i in range(6):
-#			i2c.write_byte(i2cAddrBaro, 0xA0 + i * 2)  
-#			coef = i2c.read_byte(i2cAddrBaro)
-#			coef = i2c.read_byte(i2cAddrBaro) + coef * 256
-#			coefficients.append(coef)
-		# read pressure
-#	except Exception as ex:
-#		print 'i2c error baro : %s' % str(ex)
-
 
 	print "%i  %i  %i  %i  %i" % (btn1val, btn2val, btn3val, pirval, lightval)  
 
-	time.sleep(0.2)
+	time.sleep(0.05)
 
