@@ -25,8 +25,9 @@
 #              Ground         |* *| GPIO  7 (CE1)
 #                             +---+
 
-import RPi.GPIO as GPIO, time, smbus, os, pyglet
+import RPi.GPIO as GPIO, time, smbus, os
 from AttinyStepper import AttinyStepper
+from ServoPi import ServoPi
 
 GPIO.setmode(GPIO.BCM)
 # Set up the GPIO channels - one input and one output
@@ -38,21 +39,10 @@ GPIO.setup(24, GPIO.IN)   # BTN3 play the sound of an animal
 
 i2c = smbus.SMBus(1)
 
-tinyStep = AttinyStepper(0x10, 20)
+tinyStep  = AttinyStepper(0x10, 20)
+doorServo = ServoPi(4, 0.002, 0.001, 0.02)
 
 doorOpen = GPIO.input(18) == GPIO.HIGH
-servoPin = 4
-servoRefreshPeriod = 0.02
-servoOpenVal  = 0.002
-servoCloseVal = 0.001
-servoSteps = 80
-
-# make the blinkm dark
-#i2c.write_byte(0x09, 0x6F)
-#i2c.write_byte(0x09, 0x6E)
-#i2c.write_byte(0x09, 0x00)
-#i2c.write_byte(0x09, 0x00)
-#i2c.write_byte(0x09, 0x00)
 
 # Main program loop
 while True:
@@ -63,9 +53,6 @@ while True:
 	lightval = 0
 
 	if btn3val:
-#		music = pyglet.resource.media('sounds/ele.wav')
-#		music.play()
-#		pyglet.app.run()
 		print 'btn 3 pressed. playing elephant'
 		os.system('aplay sounds/ele.wav')
 
@@ -81,24 +68,16 @@ while True:
 			print 'i2c error with the stepper: %s' % str(ex)
 
 	if doorOpen != btn1val:
-		servoInterval = servoOpenVal - servoCloseVal		
+		servoInterval = servoOpenVal - servoCloseVal
+		servoSteps = 80	
 		if btn1val:
 			print 'open the door'
 			for i in range(1, servoSteps):
-				nowVal = servoCloseVal + i * servoInterval / servoSteps
-				GPIO.output(servoPin, False)
-				time.sleep(nowVal)
-				GPIO.output(servoPin, True)
-				time.sleep(servoRefreshPeriod)
+				doorServo.move(i / 80)
 		else:
 			print 'close the door'
 			for i in range(1, servoSteps):
-				nowVal = servoOpenVal - i * servoInterval / servoSteps
-
-				GPIO.output(servoPin, False)
-				time.sleep(nowVal)
-				GPIO.output(servoPin, True)
-				time.sleep(servoRefreshPeriod)
+				doorServo.move(1 - (i / 80))
 		doorOpen = btn1val			
 		# todo: talk to the servo
 
