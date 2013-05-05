@@ -91,10 +91,10 @@ int main(void)
 					PORTB |= (1 << PB1); // stepper direction forward
 				case 0xB2: // move stepper backwards (sends 2 bytes)
 				{
-					uint16_t steps  = usiTwiReceiveByte() << 8;
+					uint16_t steps  = (uint16_t)(usiTwiReceiveByte()) << 8;
 					steps          += usiTwiReceiveByte();
 					uint16_t dur2   = eeprom_read_word(&stepDuration) / 2;
-					for(uint8_t i=0; i<steps; ++i)
+					for(uint16_t i=0; i<steps; ++i)
 					{
 						PORTB |= (1 << PB3);
 						for(uint16_t j=0; j<dur2; ++j)

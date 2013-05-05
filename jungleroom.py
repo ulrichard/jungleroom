@@ -25,8 +25,9 @@
 #              Ground         |* *| GPIO  7 (CE1)
 #                             +---+
 
-import RPi.GPIO as GPIO, time, smbus, os, pyglet, random
+import RPi.GPIO as GPIO, time, smbus, os, random
 from AttinyStepper import AttinyStepper
+from ServoPi import ServoPi
 
 GPIO.setmode(GPIO.BCM)
 # Set up the GPIO channels - one input and one output
@@ -38,21 +39,12 @@ GPIO.setup(24, GPIO.IN)   # BTN3 play the sound of an animal
 
 i2c = smbus.SMBus(1)
 
-tinyStep = AttinyStepper(0x10, 20)
+tinyStep  = AttinyStepper(0x10, 20)
+doorServo = ServoPi(4, 0.002, 0.001, 0.02)
 
 doorOpen = GPIO.input(18) == GPIO.HIGH
-servoPin = 4
-servoRefreshPeriod = 0.02
-servoOpenVal  = 0.0019
-servoCloseVal = 0.001
-servoSteps = 80
 
-# make the blinkm dark
-#i2c.write_byte(0x09, 0x6F)
-#i2c.write_byte(0x09, 0x6E)
-#i2c.write_byte(0x09, 0x00)
-#i2c.write_byte(0x09, 0x00)
-#i2c.write_byte(0x09, 0x00)
+cableCarBottom = True
 
 # Main program loop
 while True:
@@ -71,32 +63,28 @@ while True:
 	if btn2val:
 		try:
 			# let the stepper motor advance some steps
-			tinyStep.stepsForward(500)
-			time.sleep(3)
-			tinyStep.stepsBackward(500)
-			time.sleep(3)
+			if cableCarBottom:
+				tinyStep.stepsForward(255)
+				cableCarBottom = False
+			else:
+				tinyStep.stepsBackward(255)
+				cableCarBottom = True
+			time.sleep(5)
 			
 		except Exception as ex:
 			print 'i2c error with the stepper: %s' % str(ex)
 
 	if doorOpen != btn1val:
-		servoInterval = servoOpenVal - servoCloseVal		
+		servoInterval = servoOpenVal - servoCloseVal
+		servoSteps = 80	
 		if btn1val:
 			print 'open the door'
 			for i in range(1, servoSteps):
-				nowVal = servoCloseVal + i * servoInterval / servoSteps
-				GPIO.output(servoPin, False)
-				time.sleep(nowVal)
-				GPIO.output(servoPin, True)
-				time.sleep(servoRefreshPeriod)
+				doorServo.move(i / 80)
 		else:
 			print 'close the door'
 			for i in range(1, servoSteps):
-				nowVal = servoOpenVal - i * servoInterval / servoSteps
-				GPIO.output(servoPin, False)
-				time.sleep(nowVal)
-				GPIO.output(servoPin, True)
-				time.sleep(servoRefreshPeriod)
+				doorServo.move(1 - (i / 80))
 		doorOpen = btn1val			
 	elif doorOpen:
 		# send some impulses to keep the door open
@@ -106,28 +94,11 @@ while True:
 			GPIO.output(servoPin, True)
 			time.sleep(servoRefreshPeriod)
 			
-
 	try:		 
 		# get the light value analog reading from the attiny
 		lightval = tinyStep.readAnalog8()
 	except Exception as ex:
 		print 'i2c error with the light sensor : %s' % str(ex)
-
-#	try:
-		# read the barometric pressure sensor
-#		i2cAddrBaro = 0x77  # 0x77 or 0x76
-#		i2c.write_byte(i2cAddrBaro, 0x1E)  # send reset command
-#		time.sleep(0.03)
-		# read coefficients
-#		coefficients = []
-#		for i in range(6):
-#			i2c.write_byte(i2cAddrBaro, 0xA0 + i * 2)  
-#			coef = i2c.read_byte(i2cAddrBaro)
-#			coef = i2c.read_byte(i2cAddrBaro) + coef * 256
-#			coefficients.append(coef)
-		# read pressure
-#	except Exception as ex:
-#		print 'i2c error baro : %s' % str(ex)
 
 
 	print "%i  %i  %i  %i  %i" % (btn1val, btn2val, btn3val, pirval, lightval)  
