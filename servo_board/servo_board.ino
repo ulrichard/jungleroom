@@ -1,5 +1,5 @@
 // Extension board for the raspberry pi to drive a servo and receive infrared signals
-// Using the 
+// Using the IR library from http://playground.arduino.cc/Main/IRLib
 
 #include "IR.h"
 #include <Arduino.h>
