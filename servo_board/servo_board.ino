@@ -1,13 +1,16 @@
 // Extension board for the raspberry pi to drive a servo and receive infrared signals
+// Using the 
 
 #include "IR.h"
+#include <Arduino.h>
 
 void setup()
 {
-  Serial.begin(38400);
+  Serial.begin(115200);
 
-  // IR receiver hardware is on pin2.
-  IR::initialise(0);
+  IR::initialise(0); // IR receiver hardware is on pin2.
+  
+  Serial.println("listening for IR signals");
 }
 
 void loop()

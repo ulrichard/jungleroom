@@ -10,7 +10,7 @@
  
  */
 
-#include "WConstants.h"
+#include <Arduino.h>
 #include "IR.h"
 
 
