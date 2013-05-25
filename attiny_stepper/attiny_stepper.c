@@ -119,7 +119,7 @@ int main(void)
 					usiTwiTransmitByte(analogval);
 					break;
 				}
-				case 0xC2: // query analog value of ADC2 with 8 bit (expects 1 byte)
+				case 0xC2: // query analog value of ADC2 with 10 bit (expects 2 byte)
 				{
 					ADMUX &= ~(1 << ADLAR); // 10 bit precision
 					// set ADSC pin to 1 in order to start reading the AIN value
