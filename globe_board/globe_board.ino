@@ -15,12 +15,13 @@ IRsend irsend; // uses pin 3
 
 void setup()
 {
-	// power save
+	// power saving by not having active ouputs or floating inputs
 	DDRD &= B00001111;  // set Arduino pins 4 to 7 as inputs, leaves 0 to 3 as is
 	DDRB =  B00000000;  // set pins 8 to 13 as inputs
 	PORTD |= B11110100; // enable pullups on pins 2 and 4 to 7, leave pins 0,1,3 alone
 	PORTB |= B11111111; // enable pullups on pins 8 to 13
 	
+	// power saving by disabling some modules
 #ifdef NOT_MEGA8
 	power_adc_disable();
 	power_twi_disable();
@@ -57,7 +58,9 @@ void sleepNow()
 	sleep_enable();         // Set sleep enable (SE) bit:
 
 	digitalWrite(13, LOW);  // turn LED off to indicate sleep
-	
+#ifdef NOT_MEGA8
+	sleep_bod_disable();    // disable broun out detection to preserve some power
+#endif
 	sleep_mode();           // Put the device to sleep:
 	
 	sleep_disable();        // Upon waking up, sketch continues from this point.
