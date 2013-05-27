@@ -10,6 +10,7 @@ SET(AVRDUDE_PORT   /dev/ttyACM0)
 
 generate_arduino_firmware(globe_board
     SKETCH ../globe_board
+	SRCS globe_board.ino Arduino-IRremote/IRremote.cpp
 	PROGRAMMER stk500v2
     PORT  ${AVRDUDE_PORT}
     BOARD ${AVR_DEVICE}

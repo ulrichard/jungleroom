@@ -1,0 +1,3 @@
+[submodule "globe_board/Arduino-IRremote"]
+	path = globe_board/Arduino-IRremote
+	url = git@github.com:shirriff/Arduino-IRremote.git
