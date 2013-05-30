@@ -20,9 +20,10 @@ static uint8_t PIN_NorthAmerica =  7;
 static uint8_t PIN_SouthAmerica =  8;
 static uint8_t PIN_Australia 	=  9;
 static uint8_t PIN_Status_LED   = 13;
-#define IR_TRANSMIT_ENABLED
+#define JRG_IR_TRANSMIT_ENABLED
+#define JRG_SLEEP_ENABLED
 
-#ifdef IR_TRANSMIT_ENABLED
+#ifdef JRG_IR_TRANSMIT_ENABLED
 IRsend irsend; // uses pin 3
 #endif
 
@@ -42,23 +43,34 @@ void setup()
 
 void loop()
 {
+#ifdef JRG_IR_TRANSMIT_ENABLED
 	const unsigned long irCode = getIrCodeFromButton();
 
 	if(0 != irCode)
 	{
-#ifdef IR_TRANSMIT_ENABLED
 		for(int i=0; i<3; ++i)
 		{
 			irsend.sendSony(0xa90, 12); // Sony TV power code
 			delay(100);
 		}
-#endif
 	}
+#else
+	for(uint8_t i=0; i<6; ++i)
+	{
+		digitalWrite(PIN_Status_LED, LOW);
+		delay(200);
+		digitalWrite(PIN_Status_LED, HIGH);
+		delay(200);
+	}
+#endif
 
 	// Stay awake for 1 second, then sleep.
 	// LED turns off when sleeping, then back on upon wake.
 	delay(1000);
+
+#ifdef JRG_SLEEP_ENABLED
 	sleepNow();
+#endif
 }
 
 const unsigned long getIrCodeFromButton()
@@ -81,6 +93,7 @@ const unsigned long getIrCodeFromButton()
 
 void sleepNow()
 {
+	digitalWrite(PIN_Status_LED, LOW);  // turn LED off to indicate sleep
 	attachInterrupt(0, wakeUpNow, LOW); // Set pin 2 as interrupt and attach handler:
 	delay(100);
 
@@ -91,11 +104,7 @@ void sleepNow()
 	// SLEEP_MODE_STANDBY
 	// SLEEP_MODE_PWR_DOWN     -the most power savings
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN);   // Choose our preferred sleep mode:
-	
 	sleep_enable();         // Set sleep enable (SE) bit:
-
-	digitalWrite(PIN_Status_LED, LOW);  // turn LED off to indicate sleep
-
 	sleep_mode();           // Put the device to sleep:
 	
 	sleep_disable();        // Upon waking up, sketch continues from this point.
