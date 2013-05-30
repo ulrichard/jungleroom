@@ -1,7 +1,7 @@
 // This board is placed inside a globe with buttons on each continent.
 // Based on the button that's pressed, an IR code will be sent to the RaspberryPi.
-// pin  2 serves as interrupt trigger for the buttons.
-// pin  3 connects an infrared transmitter LED.
+
+
 // pin 13 connects a status LED showing when the device is not at sleep 
 
 #include "Arduino-IRremote/IRremote.h"
@@ -10,36 +10,49 @@
 #include <avr/sleep.h>
 #include <avr/io.h>
 
+// pin assignments
+static uint8_t PIN_IntTrigger 	=  2; // interrupt trigger for the buttons through diodes.
+static uint8_t PIN_IR_LED     	=  3; // infrared transmitter LED.
+static uint8_t PIN_Europe 		=  4;
+static uint8_t PIN_Africa 		=  5;
+static uint8_t PIN_Asia   		=  6;
+static uint8_t PIN_NorthAmerica =  7;
+static uint8_t PIN_SouthAmerica =  8;
+static uint8_t PIN_Australia 	=  9;
+static uint8_t PIN_Status_LED   = 13;
+#define IR_TRANSMIT_ENABLED
 
+#ifdef IR_TRANSMIT_ENABLED
 IRsend irsend; // uses pin 3
+#endif
 
 void setup()
 {
 	// power saving by not having active ouputs or floating inputs
 	DDRD &= B00001111;  // set Arduino pins 4 to 7 as inputs, leaves 0 to 3 as is
-	DDRB =  B00000000;  // set pins 8 to 13 as inputs
+	DDRB =  B00100000;  // set pins 8 to 12 as inputs
 	PORTD |= B11110100; // enable pullups on pins 2 and 4 to 7, leave pins 0,1,3 alone
-	PORTB |= B11111111; // enable pullups on pins 8 to 13
-	
-	// power saving by disabling some modules
-#ifdef NOT_MEGA8
-	power_adc_disable();
-	power_twi_disable();
-#endif
+	PORTB |= B00011111; // enable pullups on pins 8 to 12
 
-	pinMode(3,  OUTPUT);    // set pin 3 as an output for the IR LED
-	pinMode(13, OUTPUT);    // set pin 3 as an output for status LED
+	pinMode(PIN_IR_LED,     OUTPUT);
+	pinMode(PIN_Status_LED, OUTPUT);
 
-	digitalWrite(13, HIGH); // turn indicator LED on
+	digitalWrite(PIN_Status_LED, HIGH);
 }
 
 void loop()
 {
-	// ToDo : send different codes based on the button that was pressed
-	for(int i=0; i<3; ++i)
+	const unsigned long irCode = getIrCodeFromButton();
+
+	if(0 != irCode)
 	{
-		irsend.sendSony(0xa90, 12); // Sony TV power code
-		delay(100);
+#ifdef IR_TRANSMIT_ENABLED
+		for(int i=0; i<3; ++i)
+		{
+			irsend.sendSony(0xa90, 12); // Sony TV power code
+			delay(100);
+		}
+#endif
 	}
 
 	// Stay awake for 1 second, then sleep.
@@ -48,27 +61,49 @@ void loop()
 	sleepNow();
 }
 
+const unsigned long getIrCodeFromButton()
+{
+	if(LOW == digitalRead(PIN_Europe))
+		return 0xa90;
+	if(LOW == digitalRead(PIN_Asia))
+		return 0xa91;
+	if(LOW == digitalRead(PIN_Africa))
+		return 0xa92;
+	if(LOW == digitalRead(PIN_NorthAmerica))
+		return 0xa93;
+	if(LOW == digitalRead(PIN_SouthAmerica))
+		return 0xa94;
+	if(LOW == digitalRead(PIN_Australia))
+		return 0xa95;
+
+	return 0;
+}
+
 void sleepNow()
 {
-	attachInterrupt(0, pinInterrupt, LOW); // Set pin 2 as interrupt and attach handler:
+	attachInterrupt(0, wakeUpNow, LOW); // Set pin 2 as interrupt and attach handler:
 	delay(100);
 
+	// The 5 different modes are:
+	// SLEEP_MODE_IDLE         -the least power savings 
+	// SLEEP_MODE_ADC
+	// SLEEP_MODE_PWR_SAVE
+	// SLEEP_MODE_STANDBY
+	// SLEEP_MODE_PWR_DOWN     -the most power savings
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN);   // Choose our preferred sleep mode:
 	
 	sleep_enable();         // Set sleep enable (SE) bit:
 
-	digitalWrite(13, LOW);  // turn LED off to indicate sleep
-#ifdef NOT_MEGA8
-	sleep_bod_disable();    // disable broun out detection to preserve some power
-#endif
+	digitalWrite(PIN_Status_LED, LOW);  // turn LED off to indicate sleep
+
 	sleep_mode();           // Put the device to sleep:
 	
 	sleep_disable();        // Upon waking up, sketch continues from this point.
 
-	digitalWrite(13, HIGH); // turn LED on to indicate awake
+	digitalWrite(PIN_Status_LED, HIGH); // turn LED on to indicate awake
 }
 
-void pinInterrupt(void)
+void wakeUpNow(void)
 {
-    detachInterrupt(0);
+    detachInterrupt(0); // so that it doesn't fire over and over again
 }
