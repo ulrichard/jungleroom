@@ -39,6 +39,10 @@ void setup()
 	pinMode(PIN_Status_LED, OUTPUT);
 
 	digitalWrite(PIN_Status_LED, HIGH);
+	delay(500);
+	digitalWrite(PIN_Status_LED, LOW);
+	delay(500);
+	digitalWrite(PIN_Status_LED, HIGH);
 }
 
 void loop()
