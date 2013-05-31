@@ -5,6 +5,8 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+static const uint8_t PIN_IrStatus_LED = 13;
+
 void setup()
 {
 	Wire.begin();
@@ -15,12 +17,22 @@ void setup()
 	Serial.println("listening for IR signals");
 	logToHitachiDisplay("listening for IR signals");
 	logToNokiaDisplay("listening for IR signals");
+
+	pinMode(PIN_IrStatus_LED, OUTPUT);
+	digitalWrite(PIN_IrStatus_LED, HIGH);
+	delay(500);
+	digitalWrite(PIN_IrStatus_LED, LOW);
+	delay(500);
+	digitalWrite(PIN_IrStatus_LED, HIGH);
+	delay(500);
+	digitalWrite(PIN_IrStatus_LED, LOW);
 }
 
 void loop()
 {
 	if(!IR::queueIsEmpty())
 	{
+		digitalWrite(PIN_IrStatus_LED, HIGH);
 		Serial.println("____");
 
 		IR_COMMAND_TYPE code;
@@ -33,6 +45,7 @@ void loop()
 			logToHitachiDisplay(tmp);
 			logToNokiaDisplay(tmp);
 		}
+		digitalWrite(PIN_IrStatus_LED, LOW);
 	}
 }
 
@@ -44,18 +57,18 @@ void logToHitachiDisplay(const char* msg)
 		Wire.beginTransmission(0x21);
 		Wire.write(0xB0); // command clear
 		Wire.endTransmission();
-                delay(50);
+		delay(50);
 		Wire.beginTransmission(0x21);
 		Wire.write(0xB1); // set cursor
 		Wire.write(1); 
 		Wire.write(1);
 		Wire.endTransmission();
-                delay(50);
+		delay(50);
 		Wire.beginTransmission(0x21);
-                uint8_t tmp[32];
-                tmp[0] = 0xB0; // command print
-                tmp[1] = min(30, strlen(msg));
-                memcpy(tmp + 2, msg, tmp[1]);
+		uint8_t tmp[32];
+		tmp[0] = 0xB0; // command print
+		tmp[1] = min(30, strlen(msg));
+		memcpy(tmp + 2, msg, tmp[1]);
 		Wire.write(tmp, tmp[1] + 2); 
 		Wire.endTransmission();
 	}
@@ -69,26 +82,26 @@ void logToNokiaDisplay(const char* msg)
 		Wire.beginTransmission(0x19);
 		Wire.write(0xC1); // backlight on
 		Wire.endTransmission();
-                delay(50);
+		delay(50);
 		Wire.beginTransmission(0x19);
 		Wire.write(0xB0); // command clear
 		Wire.endTransmission();
-                delay(50);
+		delay(50);
 		Wire.beginTransmission(0x19);
-                uint8_t tmp[32];
-                tmp[0] = 0xB3; // command print at pos
-                tmp[1] = 1;    // X pos
-                tmp[2] = 1;    // X pos
-                tmp[3] = 0;    // big font
-                tmp[4] = min(27, strlen(msg));
-                memcpy(tmp + 5, msg, tmp[4]);
+		uint8_t tmp[32];
+		tmp[0] = 0xB3; // command print at pos
+		tmp[1] = 1;    // X pos
+		tmp[2] = 1;    // X pos
+		tmp[3] = 0;    // big font
+		tmp[4] = min(27, strlen(msg));
+		memcpy(tmp + 5, msg, tmp[4]);
 		Wire.write(tmp, tmp[4] + 5); 
 		Wire.endTransmission();
-                delay(50);
+		delay(50);
 		Wire.beginTransmission(0x19);
 		Wire.write(0xB1); // command update
 		Wire.endTransmission();
-                delay(50);
+		delay(50);
 		Wire.beginTransmission(0x19);
 		Wire.write(0xC2); // backlight off
 		Wire.endTransmission();
