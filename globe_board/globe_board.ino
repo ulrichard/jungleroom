@@ -21,17 +21,14 @@ static uint8_t PIN_SouthAmerica =  8;
 static uint8_t PIN_Australia 	=  9;
 static uint8_t PIN_Status_LED   = 13;
 #define JRG_IR_TRANSMIT_ENABLED
-#define JRG_SLEEP_ENABLED
+//#define JRG_SLEEP_ENABLED
 
-#ifdef JRG_IR_TRANSMIT_ENABLED
-IRsend irsend; // uses pin 3
-#endif
 
 void setup()
 {
 	// power saving by not having active ouputs or floating inputs
-	DDRD &= B00001111;  // set Arduino pins 4 to 7 as inputs, leaves 0 to 3 as is
-	DDRB =  B00100000;  // set pins 8 to 12 as inputs
+	DDRD  &= B00001111; // set Arduino pins 4 to 7 as inputs, leaves 0 to 3 as is
+	DDRB   = B00100000; // set pins 8 to 12 as inputs
 	PORTD |= B11110100; // enable pullups on pins 2 and 4 to 7, leave pins 0,1,3 alone
 	PORTB |= B00011111; // enable pullups on pins 8 to 12
 
@@ -52,6 +49,8 @@ void loop()
 
 	if(0 != irCode)
 	{
+		IRsend irsend; // uses pin 3
+
 		for(int i=0; i<3; ++i)
 		{
 			irsend.sendSony(irCode, 12); // Sony TV power code
