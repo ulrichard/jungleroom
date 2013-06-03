@@ -33,31 +33,39 @@ void setup()
 
 void loop()
 {
-	const unsigned long irCode = 0xa90; //getIrCodeFromButton();
+	const unsigned long irCode = getIrCodeFromButton();
 
 	if(0 != irCode)
 	{
 		IRsend irsend; // uses pin 9
 
-		for(int i=0; i<3; ++i)
+		for(int i=0; i<6; ++i)
 		{
-			irsend.sendSony(irCode, 12); // Sony TV power code
-			delay(100);
+			irsend.sendSony(irCode, 12);
+//			delay(100); // doesn't work
+			for(uint16_t i=0; i<5; ++i)
+				for(uint16_t j=0; j<1000; ++j)
+					digitalWrite(PIN_Status_LED, HIGH);
 		}
 	}
 
 
-	// Stay awake for 1 second, then sleep.
-	// LED turns off when sleeping, then back on upon wake.
-	delay(1000);
+	if(HIGH == digitalRead(PIN_IntTrigger)) // if no button is pressed
+	{
+		// Stay awake for 1/2 second, then sleep.
+		for(uint16_t i=0; i<100; ++i)
+			for(uint16_t j=0; j<1000; ++j)
+				digitalWrite(PIN_Status_LED, HIGH);
 
-//	sleepNow();
+		if(HIGH == digitalRead(PIN_IntTrigger)) // if no button is pressed
+			sleepNow();
+	}
 }
 
 const unsigned long getIrCodeFromButton()
 {
 	if(LOW == digitalRead(PIN_Europe))
-		return 0xa90;
+		return 0xa90; 		// Sony TV power code
 	if(LOW == digitalRead(PIN_Asia))
 		return 0xa91;
 	if(LOW == digitalRead(PIN_Africa))
