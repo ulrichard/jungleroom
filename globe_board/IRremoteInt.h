@@ -173,9 +173,9 @@
 #define TICKS_HIGH(us) (int) (((us)*UTOL/USECPERTICK + 1))
 
 #ifndef DEBUG
-int MATCH(int measured, int desired) {return measured >= TICKS_LOW(desired) && measured <= TICKS_HIGH(desired);}
-int MATCH_MARK(int measured_ticks, int desired_us) {return MATCH(measured_ticks, (desired_us + MARK_EXCESS));}
-int MATCH_SPACE(int measured_ticks, int desired_us) {return MATCH(measured_ticks, (desired_us - MARK_EXCESS));}
+inline int MATCH(int measured, int desired) {return measured >= TICKS_LOW(desired) && measured <= TICKS_HIGH(desired);}
+inline int MATCH_MARK(int measured_ticks, int desired_us) {return MATCH(measured_ticks, (desired_us + MARK_EXCESS));}
+inline int MATCH_SPACE(int measured_ticks, int desired_us) {return MATCH(measured_ticks, (desired_us - MARK_EXCESS));}
 // Debugging versions are in IRremote.cpp
 #endif
 
@@ -220,11 +220,11 @@ extern volatile irparams_t irparams;
 // defines for timer2 (8 bits)
 #if defined(IR_USE_TIMER2)
 #define TIMER_RESET
-#define TIMER_ENABLE_PWM     (TCCR2A |= _BV(COM2B1))
-#define TIMER_DISABLE_PWM    (TCCR2A &= ~(_BV(COM2B1)))
-#define TIMER_ENABLE_INTR    (TIMSK2 = _BV(OCIE2A))
-#define TIMER_DISABLE_INTR   (TIMSK2 = 0)
-#define TIMER_INTR_NAME      TIMER2_COMPA_vect
+#define TIMER_ENABLE_PWM     (TCCR1A |= _BV(COM1B1))
+#define TIMER_DISABLE_PWM    (TCCR1A &= ~(_BV(COM1B1)))
+#define TIMER_ENABLE_INTR    (TIMSK1 = _BV(OCIE1A))
+#define TIMER_DISABLE_INTR   (TIMSK1 = 0)
+#define TIMER_INTR_NAME      TIMER1_COMPA_vect
 #define TIMER_CONFIG_KHZ(val) ({ \
   const uint8_t pwmval = SYSCLOCK / 2000 / (val); \
   TCCR2A = _BV(WGM20); \
@@ -274,10 +274,10 @@ extern volatile irparams_t irparams;
 #define TIMER_INTR_NAME      TIMER1_COMPA_vect
 #define TIMER_CONFIG_KHZ(val) ({ \
   const uint16_t pwmval = SYSCLOCK / 2000 / (val); \
-  TCCR1A = _BV(WGM11); \
+  TCCR1A = _BV(WGM11) | _BV(WGM10); \
   TCCR1B = _BV(WGM13) | _BV(CS10); \
-  ICR1 = pwmval; \
-  OCR1A = pwmval / 3; \
+  OCR1A = pwmval; \
+  OCR1B = pwmval / 3; \
 })
 #define TIMER_CONFIG_NORMAL() ({ \
   TCCR1A = 0; \

@@ -1,55 +1,43 @@
 // This board is placed inside a globe with buttons on each continent.
 // Based on the button that's pressed, an IR code will be sent to the RaspberryPi.
 
-
-// pin 13 connects a status LED showing when the device is not at sleep 
-
-#include "Arduino-IRremote/IRremote.h"
+#include "IRremote.h"
 #include <avr/interrupt.h>
 #include <avr/power.h>
 #include <avr/sleep.h>
 #include <avr/io.h>
 
 // pin assignments
-static uint8_t PIN_IntTrigger 	=  2; // interrupt trigger for the buttons through diodes.
-static uint8_t PIN_IR_LED     	=  3; // infrared transmitter LED.
-static uint8_t PIN_Europe 		=  4;
-static uint8_t PIN_Africa 		=  5;
-static uint8_t PIN_Asia   		=  6;
-static uint8_t PIN_NorthAmerica =  7;
-static uint8_t PIN_SouthAmerica =  8;
-static uint8_t PIN_Australia 	=  9;
+static uint8_t PIN_IntTrigger 	=  2; // INT0 -> interrupt trigger for the buttons through diodes.
+static uint8_t PIN_IR_LED     	=  9; // OC1A -> infrared transmitter LED.
+static uint8_t PIN_Europe 		=  3;
+static uint8_t PIN_Africa 		=  4;
+static uint8_t PIN_Asia   		=  5;
+static uint8_t PIN_NorthAmerica =  6;
+static uint8_t PIN_SouthAmerica =  7;
+static uint8_t PIN_Australia 	=  8;
 static uint8_t PIN_Status_LED   = 13;
-#define JRG_IR_TRANSMIT_ENABLED
-//#define JRG_SLEEP_ENABLED
-
 
 void setup()
 {
-	// power saving by not having active ouputs or floating inputs
-	DDRD  &= B00001111; // set Arduino pins 4 to 7 as inputs, leaves 0 to 3 as is
-	DDRB   = B00100000; // set pins 8 to 12 as inputs
-	PORTD |= B11110100; // enable pullups on pins 2 and 4 to 7, leave pins 0,1,3 alone
-	PORTB |= B00011111; // enable pullups on pins 8 to 12
+	// Apply power saving by not having active ouputs or floating inputs.
+	DDRD  &= B00000011; // set Arduino pins 2 to 7 as inputs, leaves 0 and 1 as is
+	DDRB   = B00100010; // set pins 8 and 10 to 12 as inputs, leaves 9 as is
+	PORTD |= B11111100; // enable pullups on pins 2 to 7, leave pins 0 and 1 alone
+	PORTB |= B00011101; // enable pullups on pins 8 and 10 to 12 as inputs, leaves 9 alone
 
 	pinMode(PIN_IR_LED,     OUTPUT);
 	pinMode(PIN_Status_LED, OUTPUT);
-
-	digitalWrite(PIN_Status_LED, HIGH);
-	delay(500);
-	digitalWrite(PIN_Status_LED, LOW);
-	delay(500);
 	digitalWrite(PIN_Status_LED, HIGH);
 }
 
 void loop()
 {
-#ifdef JRG_IR_TRANSMIT_ENABLED
-	const unsigned long irCode = getIrCodeFromButton();
+	const unsigned long irCode = 0xa90; //getIrCodeFromButton();
 
 	if(0 != irCode)
 	{
-		IRsend irsend; // uses pin 3
+		IRsend irsend; // uses pin 9
 
 		for(int i=0; i<3; ++i)
 		{
@@ -57,23 +45,13 @@ void loop()
 			delay(100);
 		}
 	}
-#else
-	for(uint8_t i=0; i<6; ++i)
-	{
-		digitalWrite(PIN_Status_LED, LOW);
-		delay(200);
-		digitalWrite(PIN_Status_LED, HIGH);
-		delay(200);
-	}
-#endif
+
 
 	// Stay awake for 1 second, then sleep.
 	// LED turns off when sleeping, then back on upon wake.
 	delay(1000);
 
-#ifdef JRG_SLEEP_ENABLED
-	sleepNow();
-#endif
+//	sleepNow();
 }
 
 const unsigned long getIrCodeFromButton()
