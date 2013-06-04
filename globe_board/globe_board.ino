@@ -43,7 +43,7 @@ void loop()
 		{
 			irsend.sendSony(irCode, 12);
 //			delay(100); // doesn't work
-			for(uint16_t i=0; i<5; ++i)
+			for(uint16_t i=0; i<10; ++i)
 				for(uint16_t j=0; j<1000; ++j)
 					digitalWrite(PIN_Status_LED, HIGH);
 		}
@@ -65,43 +65,42 @@ void loop()
 const unsigned long getIrCodeFromButton()
 {
 	if(LOW == digitalRead(PIN_Europe))
-		return 0xa90; 		// Sony TV power code
+		return 0B100000001000; // 1
 	if(LOW == digitalRead(PIN_Asia))
-		return 0xa91;
+		return 0B010000001000; // 2
 	if(LOW == digitalRead(PIN_Africa))
-		return 0xa92;
+		return 0B110000001000; // 3
 	if(LOW == digitalRead(PIN_NorthAmerica))
-		return 0xa93;
+		return 0B001000001000; // 4
 	if(LOW == digitalRead(PIN_SouthAmerica))
-		return 0xa94;
+		return 0B101000001000; // 5
 	if(LOW == digitalRead(PIN_Australia))
-		return 0xa95;
+		return 0B011000001000; // 6
 
 	return 0;
 }
 
 void sleepNow()
 {
-	digitalWrite(PIN_Status_LED, LOW);  // turn LED off to indicate sleep
-	attachInterrupt(0, wakeUpNow, LOW); // Set pin 2 as interrupt and attach handler:
-	delay(100);
+	digitalWrite(PIN_Status_LED, LOW);   // turn LED off to indicate sleep
+	attachInterrupt(0, wakeUpNow, LOW);  // Set pin 2 as interrupt and attach handler:
+//	delay(100); // does not work
+	for(uint16_t i=0; i<10; ++i)
+		for(uint16_t j=0; j<1000; ++j)
+			digitalWrite(PIN_Status_LED, LOW);
 
-	// The 5 different modes are:
-	// SLEEP_MODE_IDLE         -the least power savings 
-	// SLEEP_MODE_ADC
-	// SLEEP_MODE_PWR_SAVE
-	// SLEEP_MODE_STANDBY
-	// SLEEP_MODE_PWR_DOWN     -the most power savings
-	set_sleep_mode(SLEEP_MODE_PWR_DOWN);   // Choose our preferred sleep mode:
-	sleep_enable();         // Set sleep enable (SE) bit:
-	sleep_mode();           // Put the device to sleep:
+	set_sleep_mode(SLEEP_MODE_PWR_DOWN); // Choose our preferred sleep mode
+	sleep_enable();         			 // Set sleep enable (SE) bit
+	sleep_mode();           			 // Put the device to sleep
 	
-	sleep_disable();        // Upon waking up, sketch continues from this point.
+	sleep_disable();        			 // Upon waking up, sketch continues from this point.
 
-	digitalWrite(PIN_Status_LED, HIGH); // turn LED on to indicate awake
+	digitalWrite(PIN_Status_LED, HIGH);  // turn LED on to indicate awake
 }
 
 void wakeUpNow(void)
 {
     detachInterrupt(0); // so that it doesn't fire over and over again
 }
+
+
