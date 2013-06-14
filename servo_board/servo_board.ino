@@ -30,6 +30,7 @@ void setup()
 	myservo.attach(PIN_Servo);
 	myservo.write(10);
 
+	lastIrCode = -1;
 	IR::initialise(0); // IR receiver hardware is on pin2.
 //	Serial.println("listening for IR signals");
 	logToNokiaDisplay("listening for IR signals");
@@ -88,6 +89,7 @@ void HandleI2cCommands()
     {
         case 0xA1: // get last IR code
 			Wire.write(lastIrCode);
+			lastIrCode = -1;
             break;
 
         case 0xA2: // move servo to position

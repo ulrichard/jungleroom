@@ -25,4 +25,20 @@ class ServoBoard:
 		print "AtMega8 interfacing to the ir receiver, servo and speaker power, at i2c address %d" % self.i2cSlaveAddr
 
 
+# test code
+if __name__ == "__main__":
+	sb = ServoBoard(0x11, 1) # bus is 0 on the alix, and 1 on the raspbe
+	print "servo test"
+	sb.speakerPower(1)
+	for i in range(25):
+		sb.servoPos(i * 10)
+		time.sleep(0.1)
+	sb.speakerPower(0)
+
+	print "getting infrared codes"
+	for i in range(25):
+		print sb.getInfrared()
+		time.sleep(0.1)
+		
+		
 
