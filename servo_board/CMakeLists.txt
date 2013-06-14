@@ -1,5 +1,4 @@
-#SET(atmega8.build.f_cpu 8000000) # running on internal 8MHz RC oscillator
-#SET(atmega8.build.f_cpu 16000000) # running on external 16MHz crystal
+SET(atmega8.build.f_cpu 8000000) # running on external 8MHz resonator
 
 set(CMAKE_TOOLCHAIN_FILE ../../arduino-cmake/cmake/ArduinoToolchain.cmake)
 
