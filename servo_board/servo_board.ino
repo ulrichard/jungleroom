@@ -94,7 +94,7 @@ void HandleI2cCommands()
 			myservo.write(recvBuffer[1]);
             break;
 
-        case 0xA2: // speaker power
+        case 0xA3: // speaker power
 			digitalWrite(PIN_SpeakerPower, 0 == recvBuffer[1] ? LOW : HIGH);
             break;
 
