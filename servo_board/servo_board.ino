@@ -16,9 +16,11 @@ uint8_t recvPos;        // position in the recvBuffer
 unsigned long recvLast; // time of last received i2c data
 int8_t  lastIrCode;     // our codes are small enough to use a type with atomic access, negative means no code
 Servo myservo;			// top open the door of the raspberry
+bool g_NokiaDisplayDebugLog; 
 
 void setup()
 {
+    g_NokiaDisplayDebugLog = true;
     recvPos = 0;
     recvLast = millis();
 
@@ -61,7 +63,8 @@ void loop()
 		IR_COMMAND_TYPE irCode;
 		while(IR::queueRead(irCode))
 		{
-			lastIrCode = irCode;
+                        if(irCode > 0)
+			  lastIrCode = irCode;
 
 			char tmp[32];
 			sprintf(tmp, "%d", irCode);
@@ -100,6 +103,10 @@ void HandleI2cCommands()
 			digitalWrite(PIN_SpeakerPower, 0 == recvBuffer[1] ? LOW : HIGH);
             break;
 
+        case 0xA4: // debug log on nokia display
+			g_NokiaDisplayDebugLog = (0 != recvBuffer[1]);
+            break;
+
         default:
             // invalid command. just reset below          
             digitalWrite(PIN_IrStatus_LED, HIGH);
@@ -126,6 +133,10 @@ void receiveI2C(int howMany)
 
 void logToNokiaDisplay(const char* msg)
 {
+    if(!g_NokiaDisplayDebugLog)
+        return;
+        
+        
 	Wire.beginTransmission(0x19);
 	if(Wire.endTransmission() == 0)
 	{

@@ -21,6 +21,10 @@ class ServoBoard:
 		self.i2c.write_byte(self.i2cSlaveAddr, 0xA3)
 		self.i2c.write_byte(self.i2cSlaveAddr, val)
 
+	def debugLoggingNokiaDisplay(self, val):
+		self.i2c.write_byte(self.i2cSlaveAddr, 0xA4)
+		self.i2c.write_byte(self.i2cSlaveAddr, val)
+
 	def __repr__(self):
 		print "AtMega8 interfacing to the ir receiver, servo and speaker power, at i2c address %d" % self.i2cSlaveAddr
 
@@ -28,6 +32,7 @@ class ServoBoard:
 # test code
 if __name__ == "__main__":
 	sb = ServoBoard(0x11, 1) # bus is 0 on the alix, and 1 on the raspbe
+	sb.debugLoggingNokiaDisplay(0)
 	print "servo test"
 	sb.speakerPower(1)
 	for i in range(25):
