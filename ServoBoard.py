@@ -41,9 +41,12 @@ if __name__ == "__main__":
 	sb.speakerPower(0)
 
 	print "getting infrared codes"
-	for i in range(25):
-		print sb.getInfrared()
-		time.sleep(0.1)
+	for i in range(50):
+		irCode = sb.getInfrared()
+		if 0 != irCode:
+			print irCode
+		time.sleep(0.2)
+
 		
 		
 
