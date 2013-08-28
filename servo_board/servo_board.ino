@@ -63,8 +63,8 @@ void loop()
 		IR_COMMAND_TYPE irCode;
 		while(IR::queueRead(irCode))
 		{
-                        if(irCode > 0)
-			  lastIrCode = irCode;
+			if(irCode > 0)
+				lastIrCode = irCode;
 
 			char tmp[32];
 			sprintf(tmp, "%d", irCode);
@@ -79,7 +79,7 @@ void loop()
 void HandleI2cCommands()
 {
     if(recvPos < 1)
-        return;        
+        return;
     if(recvLast + 3000 < millis())
 	{
         recvPos = 0;  // reset if we didn't receive anything for more than three seconds
@@ -143,26 +143,30 @@ void logToNokiaDisplay(const char* msg)
 		Wire.beginTransmission(0x19);
 		Wire.write(0xC1); // backlight on
 		Wire.endTransmission();
-		delay(50);
+		delay(60);
+
 		Wire.beginTransmission(0x19);
 		Wire.write(0xB0); // command clear
 		Wire.endTransmission();
-		delay(50);
+		delay(60);
+
 		Wire.beginTransmission(0x19);
 		uint8_t tmp[32];
 		tmp[0] = 0xB3; // command print at pos
 		tmp[1] = 1;    // X pos
 		tmp[2] = 1;    // X pos
-		tmp[3] = 0;    // big font
-		tmp[4] = min(27, strlen(msg));
+		tmp[3] = 0;    // no big font
+		tmp[4] = min(12, strlen(msg));
 		memcpy(tmp + 5, msg, tmp[4]);
 		Wire.write(tmp, tmp[4] + 5); 
 		Wire.endTransmission();
-		delay(50);
+		delay(60);
+
 		Wire.beginTransmission(0x19);
 		Wire.write(0xB1); // command update
 		Wire.endTransmission();
-		delay(50);
+		delay(60);
+
 		Wire.beginTransmission(0x19);
 		Wire.write(0xC2); // backlight off
 		Wire.endTransmission();
