@@ -6,39 +6,41 @@
 #include <Wire.h>
 #include <Servo.h>
 
-static const uint8_t PIN_IrReceiver   =  2; // fix by the IR library
+static const uint8_t PIN_IrReceiver   =  2; // fixed by the IR library
 static const uint8_t PIN_Servo        =  3;
 static const uint8_t PIN_SpeakerPower =  4;
+static const uint8_t PIN_DebugSwitch  =  5;
 static const uint8_t PIN_IrStatus_LED = 13;
 
 uint8_t recvBuffer[16]; // i2c receive buffer
 uint8_t recvPos;        // position in the recvBuffer
 unsigned long recvLast; // time of last received i2c data
-int8_t  lastIrCode;     // our codes are small enough to use a type with atomic access, negative means no code
+int8_t   lastIrCode;    // our codes are small enough to use a type with atomic access, negative means no code
 Servo myservo;			// top open the door of the raspberry
-bool g_NokiaDisplayDebugLog; 
 
 void setup()
 {
-    g_NokiaDisplayDebugLog = true;
     recvPos = 0;
     recvLast = millis();
 
 	Wire.begin(0x11); 			// join i2c bus with address #0x11
     Wire.onReceive(receiveI2C); // register event
 
-//	Serial.begin(115200);
-
 	myservo.attach(PIN_Servo);
 	myservo.write(10);
 
-	lastIrCode = -1;
+	lastIrCode = 0xFF;
 	IR::initialise(0); // IR receiver hardware is on pin2.
-//	Serial.println("listening for IR signals");
-	logToNokiaDisplay("listening for IR signals");
+//	logToNokiaDisplay("listening for IR signals");
+
+	Serial.begin(115200);
+	Serial.println("listening for IR signals");
 
 	pinMode(PIN_SpeakerPower, OUTPUT);
 	digitalWrite(PIN_SpeakerPower, LOW);
+
+	pinMode(PIN_DebugSwitch, INPUT);
+	digitalWrite(PIN_DebugSwitch, HIGH); // pull up
 
 	pinMode(PIN_IrStatus_LED, OUTPUT);
 	digitalWrite(PIN_IrStatus_LED, HIGH);
@@ -58,19 +60,19 @@ void loop()
 	if(!IR::queueIsEmpty())
 	{
 		digitalWrite(PIN_IrStatus_LED, HIGH);
-//		Serial.println("____");
 
 		IR_COMMAND_TYPE irCode;
 		while(IR::queueRead(irCode))
 		{
-			if(irCode > 0)
+			if(irCode >= 0)
 				lastIrCode = irCode;
 
-			char tmp[32];
-			sprintf(tmp, "%d", irCode);
-//			Serial.println(lastIrCode, DEC);
-//			Serial.println(tmp);
-			logToNokiaDisplay(tmp);
+//			char tmp[32];
+//			sprintf(tmp, "IR: %d", irCode);
+//			logToNokiaDisplay(tmp);
+
+			Serial.print("IR: ");
+			Serial.println(lastIrCode, DEC);
 		}
 		digitalWrite(PIN_IrStatus_LED, LOW);
 	}
@@ -84,7 +86,7 @@ void HandleI2cCommands()
 	{
         recvPos = 0;  // reset if we didn't receive anything for more than three seconds
 		digitalWrite(PIN_IrStatus_LED, HIGH);
-        delay(50);
+        delay(100);
         digitalWrite(PIN_IrStatus_LED, LOW);
 	}
         
@@ -92,7 +94,8 @@ void HandleI2cCommands()
     {
         case 0xA1: // get last IR code
 			Wire.write(lastIrCode);
-			lastIrCode = -1;
+			Serial.print("I2C: ");
+			Serial.println(lastIrCode, DEC);
             break;
 
         case 0xA2: // move servo to position
@@ -101,10 +104,11 @@ void HandleI2cCommands()
 
         case 0xA3: // speaker power
 			digitalWrite(PIN_SpeakerPower, 0 == recvBuffer[1] ? LOW : HIGH);
+			digitalWrite(PIN_IrStatus_LED, 0 == recvBuffer[1] ? LOW : HIGH);
             break;
 
-        case 0xA4: // debug log on nokia display
-			g_NokiaDisplayDebugLog = (0 != recvBuffer[1]);
+        case 0xA4: // clear infrared
+			lastIrCode = 0xFF;
             break;
 
         default:
@@ -130,10 +134,10 @@ void receiveI2C(int howMany)
     }
     recvLast = millis();
 }
-
+/*
 void logToNokiaDisplay(const char* msg)
 {
-    if(!g_NokiaDisplayDebugLog)
+    if(HIGH == digitalRead(PIN_DebugSwitch))
         return;
         
         
@@ -172,3 +176,5 @@ void logToNokiaDisplay(const char* msg)
 		Wire.endTransmission();
 	}
 }
+*/
+
