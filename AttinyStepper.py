@@ -42,5 +42,9 @@ class AttinyStepper:
 	def __repr__(self):
 		print "attiny interfacing to the easy stepper driver at i2c address %d" % self.i2cSlaveAddr
 
-
+# test code
+if __name__ == "__main__":
+	ts = AttinyStepper(0x10, 1) # bus is 0 on the alix, and 1 on the raspbe
+	lightVal = ts.readAnalog8()
+	print lightVal
 
