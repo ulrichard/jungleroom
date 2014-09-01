@@ -11,8 +11,7 @@ Contributors:
 #define TMRpcm_h   //   #define this so the compiler knows it has been included
 
 #include <Arduino.h>
-#include <pcmConfig.h>
-#include <pcmRF.h>
+#include "pcmConfig.h"
 #include <SD.h>
 #include <utility/SdFat.h>
 

@@ -6,7 +6,7 @@
 
 #ifdef USE_SOUND
   #include <SD.h>  // library for reading and writing to SD cards
-  #include "TMRpcm/TMRpcm.h"  // library for playing audio wav files
+  #include "TMRpcm.h"  // library for playing audio wav files
 #else
   #include "IRremote.h"
 #endif
