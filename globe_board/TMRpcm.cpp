@@ -3,8 +3,8 @@
 
 #include <SD.h>
 #include <utility/SdFat.h>
-#include <TMRpcm.h>
-#include <pcmConfig.h>
+#include "TMRpcm.h"
+#include "pcmConfig.h"
 
 #if !defined (RF_ONLY)
 
