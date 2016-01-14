@@ -2,14 +2,9 @@
 // Based on the button that's pressed, an IR code will be sent to the RaspberryPi.
 
 // Either use sound directly or send infrared commands
-#define USE_SOUND
 
-#ifdef USE_SOUND
-  #include <SD.h>  // library for reading and writing to SD cards
-  #include "TMRpcm.h"  // library for playing audio wav files
-#else
-  #include "IRremote.h"
-#endif
+#include "IRremote.h"
+#include "Mp3Player.h"
 #include <avr/interrupt.h>
 #include <avr/power.h>
 #include <avr/sleep.h>
@@ -18,12 +13,7 @@
 
 // pin assignments
 static const uint8_t PIN_IntTrigger   =  2; // INT0 -> interrupt trigger for the buttons through diodes.
-#ifdef USE_SOUND
-static const uint8_t PIN_SD_ChipSel   = 10; //using digital pin 4 on arduino nano 328
-static const uint8_t PIN_SPEAKER      =  9; // OC1A -> speaker or piezo
-#else
 static const uint8_t PIN_IR_LED       =  9; // OC1A -> infrared transmitter LED.
-#endif
 static const uint8_t PIN_Europe 	  =  3;
 static const uint8_t PIN_Africa 	  =  4;
 static const uint8_t PIN_Asia   	  =  5;
@@ -32,9 +22,7 @@ static const uint8_t PIN_SouthAmerica =  7;
 static const uint8_t PIN_Australia 	  =  8;
 static const uint8_t PIN_Status_LED   = 13;
 
-#ifdef USE_SOUND
-TMRpcm tmrpcm;
-#endif
+Mp3Player player;
 
 void setup()
 {
@@ -44,35 +32,17 @@ void setup()
 	PORTD |= B11111100; // enable pullups on pins 2 to 7, leave pins 0 and 1 alone
 	PORTB |= B00011101; // enable pullups on pins 8 and 10 to 12 as inputs, leaves 9 alone
 
-#ifdef USE_SOUND
-    if(!SD.begin(PIN_SD_ChipSel))
-        return; // early exit
-    tmrpcm.play("hello.wav");
-    
-    tmrpcm.speakerPin = PIN_SPEAKER;
-#else
+    player.begin();
+
 	pinMode(PIN_IR_LED,     OUTPUT);
 	pinMode(PIN_Status_LED, OUTPUT);
 	digitalWrite(PIN_Status_LED, HIGH);
-#endif
 }
 
 void loop()
 {
-#ifdef USE_SOUND
-	if(LOW == digitalRead(PIN_Europe))
-        tmrpcm.play("europe.wav");
-	else if(LOW == digitalRead(PIN_Asia))
-        tmrpcm.play("asia.wav");
-	else if(LOW == digitalRead(PIN_Africa))
-        tmrpcm.play("africa.wav");
-	else if(LOW == digitalRead(PIN_NorthAmerica))
-        tmrpcm.play("northamerica.wav");
-	else if(LOW == digitalRead(PIN_SouthAmerica))
-        tmrpcm.play("southamerica.wav");
-	else if(LOW == digitalRead(PIN_Australia))
-        tmrpcm.play("australia.wav");
-#else
+    playSongFromButton();
+
 	const unsigned long irCode = getIrCodeFromButton();
 
 	if(0 != irCode)
@@ -88,7 +58,6 @@ void loop()
 					digitalWrite(PIN_Status_LED, HIGH);
 		}
 	}
-#endif
 
 	if(HIGH == digitalRead(PIN_IntTrigger)) // if no button is pressed
 	{
@@ -102,8 +71,23 @@ void loop()
 	}
 }
 
+void playSongFromButton()
+{
+	if(LOW == digitalRead(PIN_Europe))
+		player.PlayTitle(1);
+	if(LOW == digitalRead(PIN_Asia))
+		player.PlayTitle(2);
+	if(LOW == digitalRead(PIN_Africa))
+		player.PlayTitle(3);
+	if(LOW == digitalRead(PIN_NorthAmerica))
+		player.PlayTitle(4);
+	if(LOW == digitalRead(PIN_SouthAmerica))
+		player.PlayTitle(5);
+	if(LOW == digitalRead(PIN_Australia))
+		player.PlayTitle(6);
 
-#ifndef USE_SOUND
+}
+
 const unsigned long getIrCodeFromButton()
 {
 	if(LOW == digitalRead(PIN_Europe))
@@ -121,7 +105,6 @@ const unsigned long getIrCodeFromButton()
 
 	return 0;
 }
-#endif
 
 void sleepNow()
 {
