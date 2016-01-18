@@ -1,7 +1,5 @@
 // This board is placed inside a globe with buttons on each continent.
-// Based on the button that's pressed, an IR code will be sent to the RaspberryPi.
-
-// Either use sound directly or send infrared commands
+// Based on the button that's pressed, a sound is played.
 
 #include "IRremote.h"
 #include "Mp3Player.h"
@@ -52,20 +50,14 @@ void loop()
 		for(int i=0; i<6; ++i)
 		{
 			irsend.sendSony(irCode, 12);
-//			delay(100); // doesn't work
-			for(uint16_t i=0; i<10; ++i)
-				for(uint16_t j=0; j<1000; ++j)
-					digitalWrite(PIN_Status_LED, HIGH);
+            pause(100);
 		}
 	}
 
 	if(HIGH == digitalRead(PIN_IntTrigger)) // if no button is pressed
 	{
-		// Stay awake for 1/2 second, then sleep.
-		for(uint16_t i=0; i<100; ++i)
-			for(uint16_t j=0; j<1000; ++j)
-				digitalWrite(PIN_Status_LED, HIGH);
-
+		pause(5000); // Stay awake for 5 second, then sleep.
+        
 		if(HIGH == digitalRead(PIN_IntTrigger)) // if no button is pressed
 			sleepNow();
 	}
@@ -106,14 +98,22 @@ const unsigned long getIrCodeFromButton()
 	return 0;
 }
 
+void pause(const uint32_t duration) // in ms
+{
+//	delay(duration); // does not work
+	for(uint32_t i=0; i<duration; ++i)
+		for(uint16_t j=0; j<100; ++j)
+        {
+            const int state = digitalRead(PIN_Status_LED);
+			digitalWrite(PIN_Status_LED, state);
+        }
+}
+
 void sleepNow()
 {
 	digitalWrite(PIN_Status_LED, LOW);   // turn LED off to indicate sleep
 	attachInterrupt(0, wakeUpNow, LOW);  // Set pin 2 as interrupt and attach handler:
-//	delay(100); // does not work
-	for(uint16_t i=0; i<10; ++i)
-		for(uint16_t j=0; j<1000; ++j)
-			digitalWrite(PIN_Status_LED, LOW);
+    pause(100);
 
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN); // Choose our preferred sleep mode
 	sleep_enable();         			 // Set sleep enable (SE) bit
@@ -122,6 +122,8 @@ void sleepNow()
 	sleep_disable();        			 // Upon waking up, sketch continues from this point.
 
 	digitalWrite(PIN_Status_LED, HIGH);  // turn LED on to indicate awake
+    pause(100);
+    player.begin();
 }
 
 void wakeUpNow(void)
