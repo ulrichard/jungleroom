@@ -13,7 +13,11 @@ SET(AVRDUDE_PORT   /dev/ttyACM0)
 
 generate_arduino_firmware(globe_board
     SKETCH ../globe_board
-	SRCS globe_board.ino IRremote.cpp TMRpcm.cpp 
+	SRCS 
+        globe_board.ino
+        IRremote.cpp
+        TMRpcm.cpp 
+        Mp3Player.cpp
     LIBS ${AVR_DEVICE}_SD
 	PROGRAMMER stk500v2
     PORT  ${AVRDUDE_PORT}
