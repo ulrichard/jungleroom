@@ -3,19 +3,23 @@
 
 void Mp3Player::begin() 
 {
-    Send_buf[0] = 0;
-
 	Serial.begin(9600);
 	delay(500); // Wait chip initialization is complete
     SendCommand(CMD_SEL_DEV, DEV_TF); //select the TF card  
-	delay(200); // wait for 200ms
-	SendCommand(CMD_PLAY_W_VOL, 0X0F01); //play the first song with volume 15 class
+	delay(200);
+	SetVolume(0XE0);
 }
 
 void Mp3Player::PlayTitle(const uint8_t num)
 {
-    uint8_t cmd = 0x0F00 + num;
-	SendCommand(CMD_PLAY_W_VOL, cmd); //play the song with volume 15 class
+    const uint16_t val = 0x0100 + num;
+	SendCommand(CMD_PLAY_FILE, val);
+}
+
+void Mp3Player::SetVolume(const uint8_t num)
+{
+    const uint16_t val = 0x0000 + num;
+	SendCommand(CMD_SET_VOLUME, val);
 }
 
 void Mp3Player::SendCommand(int8_t command, int16_t dat)
