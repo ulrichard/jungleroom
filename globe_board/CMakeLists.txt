@@ -16,9 +16,7 @@ generate_arduino_firmware(globe_board
 	SRCS 
         globe_board.ino
         IRremote.cpp
-        TMRpcm.cpp 
         Mp3Player.cpp
-    LIBS ${AVR_DEVICE}_SD
 	PROGRAMMER stk500v2
     PORT  ${AVRDUDE_PORT}
     BOARD ${AVR_DEVICE}
