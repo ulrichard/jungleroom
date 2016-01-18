@@ -61,16 +61,10 @@ void loop()
 
 	if(HIGH == digitalRead(PIN_IntTrigger)) // if no button is pressed
 	{
-#ifndef USE_SOUND
-        // Stay awake while the sound is playing, then sleep
-        while(tmrpcm.isPlaying())
-            ;
-#else
 		// Stay awake for 1/2 second, then sleep.
 		for(uint16_t i=0; i<100; ++i)
 			for(uint16_t j=0; j<1000; ++j)
 				digitalWrite(PIN_Status_LED, HIGH);
-#endif
 
 		if(HIGH == digitalRead(PIN_IntTrigger)) // if no button is pressed
 			sleepNow();
